@@ -631,6 +631,21 @@ section {
   min-height: 88vh;
 }
 
+/* Bewusster Übergang vom dunklen Hero-Foto zum weißen Markenauftritt: die
+   erste weiße Sektion schiebt sich als abgerundete Karte leicht über die
+   untere Kante des Hero-Fotos, statt hart auf Dunkel zu schneiden. */
+.section-lift {
+  position: relative;
+  z-index: 6;
+  margin-top: -40px;
+  border-radius: 32px 32px 0 0;
+  background: var(--c-bg);
+  box-shadow: 0 -24px 48px rgba(36, 23, 18, 0.10);
+}
+@media (max-width: 700px) {
+  .section-lift { margin-top: -24px; border-radius: 20px 20px 0 0; }
+}
+
 /* ==========================================================================
    Path split (Porträt / Business)
    ========================================================================== */
