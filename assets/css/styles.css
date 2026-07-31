@@ -1,20 +1,38 @@
 /* ==========================================================================
    FOTO ART Konstanz — Design System
-   Editorial, bildstark, dunkel. Siehe phase2_marke.md / phase3_strategie.md
+   Editorial, bildstark, hell — an die reale Marke (fotoart.net: Weiß + Rot
+   #e64946, Leitmotiv Peperoni) angelehnt, mit feurigem Rot/Orange als
+   kreativer Signatur-Akzent. Siehe phase2_marke.md.
+   Der Hero-Bereich liegt weiterhin über einem dunklen Studiofoto und nutzt
+   dafür eigene, helle "--c-hero-*"-Textfarben, unabhängig vom sonst hellen
+   Seitenthema.
    ========================================================================== */
 
 :root {
-  --c-bg: #15130f;
-  --c-bg-alt: #211d18;
-  --c-bg-alt-2: #2b241d;
-  --c-fg: #f4efe7;
-  --c-fg-muted: #c9c2b4;
-  --c-fg-faint: #948c7d;
-  --c-accent: #c6432b;
-  --c-accent-light: #e0674c;
-  --c-gold: #d9a15b;
-  --c-border: rgba(244, 239, 231, 0.12);
-  --c-border-strong: rgba(244, 239, 231, 0.22);
+  /* Flächen */
+  --c-bg: #ffffff;
+  --c-bg-alt: #fbf1ea;
+  --c-bg-alt-2: #f3ded0;
+
+  /* Text auf hellem Grund */
+  --c-fg: #241712;
+  --c-fg-muted: #6b5850;
+  --c-fg-faint: #ab998f;
+
+  /* Feuriges Rot als Hauptakzent + warmer Amber als Sekundärakzent */
+  --c-accent: #e5391f;
+  --c-accent-light: #ff7a3d;
+  --c-accent-dark: #b32713;
+  --c-gold: #b5650f;
+
+  --c-border: rgba(36, 23, 18, 0.1);
+  --c-border-strong: rgba(36, 23, 18, 0.2);
+
+  /* Text auf dem dunklen Hero-Foto (unverändert hell, unabhängig vom Seitenthema) */
+  --c-hero-fg: #f7f1ea;
+  --c-hero-fg-muted: rgba(247, 241, 234, 0.82);
+  --c-hero-fg-faint: rgba(247, 241, 234, 0.55);
+  --c-hero-gold: #eab273;
 
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
@@ -37,7 +55,7 @@
   --dur-med: 550ms;
 
   --header-h: 84px;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 /* ---------- Reset ---------- */
@@ -84,10 +102,12 @@ h3 { font-size: clamp(1.3rem, 1.8vw, 1.6rem); }
 
 p { margin: 0 0 var(--space-2); color: var(--c-fg-muted); }
 
+/* "Flamme" statt schlichtem Strich — dezente kreative Signatur, die das
+   Peperoni-/"scharf"-Leitmotiv von FOTO ART aufgreift, ohne wörtlich zu werden. */
 .eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 0.5em;
+  gap: 0.6em;
   font-size: 0.8rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -98,9 +118,11 @@ p { margin: 0 0 var(--space-2); color: var(--c-fg-muted); }
 
 .eyebrow::before {
   content: "";
-  width: 28px;
-  height: 1px;
-  background: var(--c-gold);
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 60% 40% 55% 45% / 55% 60% 40% 45%;
+  background: linear-gradient(135deg, var(--c-accent-light), var(--c-accent));
 }
 
 .container {
@@ -144,7 +166,7 @@ section {
 }
 
 :focus-visible {
-  outline: 2px solid var(--c-gold);
+  outline: 2px solid var(--c-accent);
   outline-offset: 3px;
 }
 
@@ -170,17 +192,17 @@ section {
 .btn:hover { transform: translateY(-2px); }
 
 .btn-primary {
-  background: var(--c-accent);
+  background: linear-gradient(135deg, var(--c-accent-light), var(--c-accent));
   color: #fff;
 }
-.btn-primary:hover { background: var(--c-accent-light); }
+.btn-primary:hover { background: linear-gradient(135deg, var(--c-accent-light), var(--c-accent-dark)); }
 
 .btn-ghost {
   background: transparent;
   border-color: var(--c-border-strong);
   color: var(--c-fg);
 }
-.btn-ghost:hover { border-color: var(--c-gold); }
+.btn-ghost:hover { border-color: var(--c-accent); color: var(--c-accent); }
 
 .btn-link {
   padding: 0;
@@ -214,7 +236,12 @@ section {
 
 /* ==========================================================================
    Header / Navigation
-   Logo strikt links, Nav-Punkte einzeilig mit gleichmäßigem Abstand
+   Logo strikt links, Nav-Punkte einzeilig mit gleichmäßigem Abstand.
+   Standard: solide weiße Leiste mit dunklem Text (für alle Seiten ohne
+   dunkles Foto direkt am Seitenanfang). Nur die Startseite trägt zusätzlich
+   die Modifier-Klasse `.site-header--on-photo`: dort beginnt der Header
+   hell-transparent über dem dunklen Hero-Foto und wechselt beim Scrollen
+   (`.is-scrolled`) auf denselben weißen Stil wie alle anderen Seiten.
    ========================================================================== */
 
 .site-header {
@@ -225,14 +252,18 @@ section {
   height: var(--header-h);
   display: flex;
   align-items: center;
-  background: linear-gradient(to bottom, rgba(21, 19, 15, 0.92), rgba(21, 19, 15, 0));
+  color: var(--c-fg);
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(6px);
-  transition: background var(--dur-fast) var(--ease-out);
+  box-shadow: 0 1px 0 var(--c-border);
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
 
-.site-header.is-scrolled {
-  background: rgba(21, 19, 15, 0.92);
-  border-bottom: 1px solid var(--c-border);
+.site-header--on-photo:not(.is-scrolled) {
+  color: var(--c-hero-fg);
+  background: linear-gradient(to bottom, rgba(24, 15, 10, 0.55), rgba(24, 15, 10, 0));
+  backdrop-filter: none;
+  box-shadow: none;
 }
 
 .site-header .container {
@@ -251,12 +282,15 @@ section {
   font-weight: 700;
   letter-spacing: 0.01em;
   text-decoration: none;
-  color: var(--c-fg);
+  color: inherit;
   white-space: nowrap;
 }
 
 .logo span {
   color: var(--c-accent);
+}
+.site-header--on-photo:not(.is-scrolled) .logo span {
+  color: var(--c-accent-light);
 }
 
 .main-nav {
@@ -280,16 +314,23 @@ section {
   font-size: 0.95rem;
   font-weight: 500;
   text-decoration: none;
-  color: var(--c-fg-muted);
+  color: inherit;
+  opacity: 0.82;
   padding-block: 0.4em;
   border-bottom: 1px solid transparent;
-  transition: color var(--dur-fast), border-color var(--dur-fast);
+  transition: color var(--dur-fast), opacity var(--dur-fast), border-color var(--dur-fast);
 }
 
 .main-nav a:hover,
 .main-nav a[aria-current="page"] {
-  color: var(--c-fg);
-  border-color: var(--c-gold);
+  color: var(--c-accent);
+  opacity: 1;
+  border-color: var(--c-accent);
+}
+.site-header--on-photo:not(.is-scrolled) .main-nav a:hover,
+.site-header--on-photo:not(.is-scrolled) .main-nav a[aria-current="page"] {
+  color: var(--c-accent-light);
+  border-color: var(--c-accent-light);
 }
 
 .header-cta {
@@ -302,13 +343,14 @@ section {
   background: none;
   border: 1px solid var(--c-border-strong);
   border-radius: var(--radius-s);
-  color: var(--c-fg);
+  color: inherit;
   width: 42px;
   height: 38px;
   align-items: center;
   justify-content: center;
   cursor: pointer;
 }
+.site-header--on-photo:not(.is-scrolled) .nav-toggle { border-color: rgba(247, 241, 234, 0.4); }
 
 @media (max-width: 900px) {
   .main-nav {
@@ -324,6 +366,7 @@ section {
     pointer-events: none;
     transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
     overflow-y: auto;
+    box-shadow: 0 12px 24px rgba(36, 23, 18, 0.08);
   }
   .main-nav.is-open {
     opacity: 1;
@@ -335,7 +378,16 @@ section {
     align-items: flex-start;
     gap: var(--space-3);
   }
-  .main-nav a { font-size: 1.15rem; }
+  .main-nav a {
+    font-size: 1.15rem;
+    color: var(--c-fg);
+    opacity: 1;
+  }
+  .main-nav a:hover,
+  .main-nav a[aria-current="page"] {
+    color: var(--c-accent);
+    border-color: var(--c-accent);
+  }
   .nav-toggle { display: inline-flex; }
   .header-cta { display: none; }
 }
@@ -354,7 +406,7 @@ section {
   height: 100vh;
   min-height: 560px;
   overflow: hidden;
-  background: var(--c-bg);
+  background: var(--c-fg);
 }
 
 .hero-media {
@@ -424,7 +476,7 @@ section {
 /* Rein dekorativer Rahmen an der Kante der Display-Öffnung */
 .hero-lens__ring {
   position: absolute;
-  border: 1px solid rgba(217, 161, 91, 0.6);
+  border: 1px solid rgba(234, 178, 115, 0.65);
   box-shadow: 0 0 40px 8px rgba(0, 0, 0, 0.5);
 }
 
@@ -438,17 +490,17 @@ section {
   font-family: var(--font-sans);
   font-size: 3.6px;
   letter-spacing: 0.05em;
-  fill: var(--c-gold);
+  fill: var(--c-hero-gold);
 }
 .hero-lens__hud .bracket {
   fill: none;
-  stroke: var(--c-gold);
+  stroke: var(--c-hero-gold);
   stroke-width: 0.6;
   stroke-linecap: round;
 }
 .hero-lens__hud .crosshair {
   fill: none;
-  stroke: rgba(244, 239, 231, 0.55);
+  stroke: rgba(247, 241, 234, 0.55);
   stroke-width: 0.35;
 }
 
@@ -459,14 +511,18 @@ section {
   opacity: 0;
 }
 
-/* Content */
+/* Content — steht immer über dem dunklen Foto, bleibt daher bewusst hell,
+   unabhängig vom sonst hellen Seitenthema. */
 .hero-content {
   position: relative;
   z-index: 5;
   height: 100%;
   display: flex;
   align-items: center;
+  color: var(--c-hero-fg);
 }
+
+.hero-content .eyebrow { color: var(--c-hero-gold); }
 
 .hero-content__inner {
   max-width: 620px;
@@ -483,11 +539,12 @@ section {
 
 .hero-content h1 {
   margin-bottom: var(--space-3);
+  color: var(--c-hero-fg);
 }
 
 .hero-content p.lead {
   font-size: 1.15rem;
-  color: var(--c-fg-muted);
+  color: var(--c-hero-fg-muted);
   max-width: 46ch;
 }
 
@@ -496,6 +553,17 @@ section {
   flex-wrap: wrap;
   gap: var(--space-3);
   margin-top: var(--space-4);
+}
+
+.hero-actions .btn-ghost,
+.hero-skip {
+  color: var(--c-hero-fg);
+  border-color: rgba(247, 241, 234, 0.4);
+}
+.hero-actions .btn-ghost:hover,
+.hero-skip:hover {
+  border-color: var(--c-hero-gold);
+  color: var(--c-hero-gold);
 }
 
 .hero-scroll-cue {
@@ -510,14 +578,14 @@ section {
   font-size: 0.75rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--c-fg-faint);
+  color: var(--c-hero-fg-faint);
   z-index: 5;
 }
 
 .hero-scroll-cue__line {
   width: 1px;
   height: 34px;
-  background: linear-gradient(to bottom, var(--c-gold), transparent);
+  background: linear-gradient(to bottom, var(--c-hero-gold), transparent);
   animation: hero-cue-pulse 1.8s ease-in-out infinite;
 }
 
@@ -583,7 +651,7 @@ section {
   align-items: flex-end;
   padding: var(--space-4);
   text-decoration: none;
-  color: var(--c-fg);
+  color: var(--c-hero-fg);
   background-size: cover;
   background-position: center;
   border: 1px solid var(--c-border);
@@ -618,12 +686,12 @@ section {
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: var(--c-gold);
+  color: var(--c-hero-gold);
   margin-bottom: 0.5em;
 }
 
-.path-card h3 { margin-bottom: 0.35em; }
-.path-card p { color: var(--c-fg-muted); margin-bottom: 1em; max-width: 34ch; }
+.path-card h3 { margin-bottom: 0.35em; color: var(--c-hero-fg); }
+.path-card p { color: var(--c-hero-fg-muted); margin-bottom: 1em; max-width: 34ch; }
 
 @media (max-width: 760px) {
   .path-split { grid-template-columns: 1fr; }
@@ -662,12 +730,13 @@ section {
   border: 1px solid var(--c-border);
   border-radius: var(--radius-m);
   padding: var(--space-3);
-  background: var(--c-bg-alt);
-  transition: border-color var(--dur-fast), transform var(--dur-fast);
+  background: var(--c-bg);
+  box-shadow: 0 1px 2px rgba(36, 23, 18, 0.04);
+  transition: border-color var(--dur-fast), transform var(--dur-fast), box-shadow var(--dur-fast);
 }
-.service-card:hover { border-color: var(--c-border-strong); transform: translateY(-3px); }
+.service-card:hover { border-color: var(--c-accent); transform: translateY(-3px); box-shadow: 0 10px 24px rgba(36, 23, 18, 0.08); }
 .service-card h3 { font-size: 1.15rem; }
-.service-card .icon { color: var(--c-gold); margin-bottom: var(--space-2); }
+.service-card .icon { color: var(--c-accent); margin-bottom: var(--space-2); }
 
 .media-frame {
   border-radius: var(--radius-m);
@@ -726,6 +795,7 @@ section {
   position: absolute; left: 0; right: 0; bottom: 0;
   padding: var(--space-2);
   font-size: 0.85rem;
+  color: var(--c-hero-fg);
   background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
 }
 .portfolio-item[hidden] { display: none; }
@@ -759,9 +829,9 @@ section {
   border-radius: 50%;
   border: 1px solid var(--c-border-strong);
   display: flex; align-items: center; justify-content: center;
-  transition: transform var(--dur-fast);
+  transition: transform var(--dur-fast), border-color var(--dur-fast), color var(--dur-fast);
 }
-.faq details[open] summary .plus { transform: rotate(45deg); }
+.faq details[open] summary .plus { transform: rotate(45deg); border-color: var(--c-accent); color: var(--c-accent); }
 .faq .faq-answer { padding-top: var(--space-1); padding-right: var(--space-4); }
 
 /* ==========================================================================
@@ -780,8 +850,9 @@ section {
   border: 1px solid var(--c-border);
   border-radius: var(--radius-m);
   padding: var(--space-3);
+  background: var(--c-bg);
 }
-.info-card h3 { font-size: 1rem; color: var(--c-gold); }
+.info-card h3 { font-size: 1rem; color: var(--c-accent); }
 .info-card .source-note {
   font-size: 0.78rem;
   color: var(--c-fg-faint);
@@ -798,7 +869,7 @@ section {
   height: 420px;
   border: 0;
   display: block;
-  filter: grayscale(0.4) invert(0.92) contrast(0.9);
+  filter: grayscale(0.12) contrast(1.02);
 }
 
 /* ==========================================================================
@@ -832,7 +903,7 @@ section {
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  border-color: var(--c-gold);
+  border-color: var(--c-accent);
 }
 
 .calendly-placeholder {
@@ -849,25 +920,27 @@ section {
    ========================================================================== */
 
 .draft-banner {
-  background: rgba(198, 67, 43, 0.12);
-  border: 1px solid rgba(198, 67, 43, 0.4);
+  background: rgba(229, 57, 31, 0.08);
+  border: 1px solid rgba(229, 57, 31, 0.35);
   color: var(--c-fg);
   border-radius: var(--radius-m);
   padding: var(--space-2) var(--space-3);
   font-size: 0.92rem;
   margin-bottom: var(--space-4);
 }
-.draft-banner strong { color: var(--c-accent-light); }
+.draft-banner strong { color: var(--c-accent-dark); }
 
 /* ==========================================================================
-   Footer
+   Footer — bewusst dunkel als Kontrapunkt zur hellen Seite (Bookend zum Hero)
    ========================================================================== */
 
 .site-footer {
-  background: #0d0c09;
-  border-top: 1px solid var(--c-border);
+  background: #1a110c;
+  color: var(--c-hero-fg-muted);
+  border-top: 1px solid rgba(247, 241, 234, 0.1);
   padding-block: var(--space-5) var(--space-3);
 }
+.site-footer p { color: var(--c-hero-fg-muted); }
 .footer-grid {
   display: grid;
   grid-template-columns: 1.4fr 1fr 1fr 1fr;
@@ -884,12 +957,12 @@ section {
   font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--c-fg-faint);
+  color: var(--c-hero-fg-faint);
   margin-bottom: var(--space-2);
 }
 .footer-grid ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6em; }
-.footer-grid a { text-decoration: none; color: var(--c-fg-muted); }
-.footer-grid a:hover { color: var(--c-fg); }
+.footer-grid a { text-decoration: none; color: var(--c-hero-fg-muted); }
+.footer-grid a:hover { color: var(--c-accent-light); }
 
 .footer-bottom {
   display: flex;
@@ -897,20 +970,22 @@ section {
   flex-wrap: wrap;
   gap: var(--space-2);
   padding-top: var(--space-3);
-  border-top: 1px solid var(--c-border);
+  border-top: 1px solid rgba(247, 241, 234, 0.1);
   font-size: 0.82rem;
-  color: var(--c-fg-faint);
+  color: var(--c-hero-fg-faint);
 }
 
 .social-row { display: flex; gap: 0.8em; }
 .social-row a {
   width: 36px; height: 36px;
-  border: 1px solid var(--c-border-strong);
+  border: 1px solid rgba(247, 241, 234, 0.25);
   border-radius: 50%;
+  color: var(--c-hero-fg);
   display: flex; align-items: center; justify-content: center;
   text-decoration: none;
+  transition: border-color var(--dur-fast), color var(--dur-fast);
 }
-.social-row a:hover { border-color: var(--c-gold); }
+.social-row a:hover { border-color: var(--c-accent-light); color: var(--c-accent-light); }
 
 /* ==========================================================================
    Page hero (Unterseiten)
