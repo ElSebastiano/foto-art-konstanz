@@ -1,0 +1,10 @@
+# Interne Analyse-/Recherche-Dateien (nicht für den öffentlichen Kunden-Repo bestimmt)
+phase1_analyse.md
+phase2_marke.md
+phase3_strategie.md
+phase4_umsetzung.md
+Foto_Art_Konstanz.md
+docs/
+
+# Bild-Duplikat: die Datei wird als assets/img/hero-foto-art.png im Projekt verwendet
+hero-referenz-foto-art-konstanz.png
