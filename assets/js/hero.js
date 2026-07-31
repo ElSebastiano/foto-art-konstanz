@@ -1,22 +1,21 @@
 /* =============================================================================
    FOTO ART Konstanz — interaktive Hero-Section
    ---------------------------------------------------------------------------
-   Konzept (siehe Foto_Art_Konstanz.md, Abschnitt 5, und docs/hero-implementation.md):
+   Konzept (siehe Foto_Art_Konstanz.md Abschnitt 5, docs/hero-implementation.md):
    Der Hero-Bereich bleibt via `position: sticky` im Viewport fixiert, während
-   der Nutzer durch einen zusätzlichen Scroll-Bereich scrollt. Der native
-   Scroll-Fortschritt (0 → 1) steuert drei Phasen:
-     Phase A (0.00–0.40): die unscharfe Kamera im Vordergrund wird "angehoben"
-       und aus dem Bild herausbewegt.
-     Phase B (0.35–0.85): ein Kamera-Objektiv/Iris-Reveal öffnet sich und
-       zeigt die Frau scharf "durch die Linse", inkl. dezentem Viewfinder-HUD.
-     Phase C (0.85–1.00): die Iris füllt den Viewport vollständig, Text kehrt
-       zurück, danach übernimmt der native Dokumenten-Scroll in den nächsten
-       Abschnitt.
-   Es wird bewusst KEIN Scroll-/Wheel-Hijacking verwendet: das Sperren bis zum
-   Abschluss der Sequenz ergibt sich allein daraus, dass der Wrapper höher ist
-   als der Viewport (sticky "verbraucht" erst den zusätzlichen Scrollweg).
-   Das funktioniert unverändert mit Tastatur (Page Down / Leertaste) und
-   Touch-Scroll, ohne echte Scroll-Events zu unterdrücken.
+   der Nutzer durch einen zusätzlichen Scroll-Bereich scrollt — kein Wheel-/
+   Scroll-Hijacking, das Sperren bis zum Abschluss der Sequenz ergibt sich
+   allein daraus, dass der Wrapper höher ist als der Viewport. Funktioniert
+   unverändert mit Tastatur, Trackpad und Touch.
+
+   Die Kamera im Vordergrund bleibt durchgehend scharf und unverändert sichtbar
+   (kein Wegheben, kein zusätzliches Weichzeichnen). Beim Scrollen zoomt eine
+   rechteckige Öffnung — das Kamera-Display — von ihrer kleinen Ausgangsgröße
+   auf dem Kamerakörper aus auf Vollbild auf. Da die Öffnung dasselbe Bild in
+   derselben Skalierung wie der Hintergrund zeigt, wirkt es, als würde man
+   durch das Display in die Szene hineingezoomt, bis wieder das vollständige
+   Ausgangsbild zu sehen ist — danach übernimmt der native Scroll in den
+   nächsten Abschnitt.
    ============================================================================= */
 (function () {
   "use strict";
@@ -36,7 +35,6 @@
 
   var stage = wrapper.querySelector(".hero-stage");
   var bg = wrapper.querySelector("[data-hero-bg]");
-  var camera = wrapper.querySelector("[data-hero-camera]");
   var lens = wrapper.querySelector("[data-hero-lens]");
   var backdrop = wrapper.querySelector("[data-hero-lens-backdrop]");
   var iris = wrapper.querySelector("[data-hero-lens-iris]");
@@ -138,69 +136,75 @@
     var loadScale = lerp(1.03, 1, easeOutCubic(loadT));
     var loadContentY = lerp(20, 0, easeOutCubic(loadT));
 
-    /* Phase A — Kamera anheben (0 → 0.4): deutlich aus dem Bild heraus, damit
-       die Bewegung als "die Kamera wird hochgehoben" lesbar ist. */
-    var pA = smoothstep(0, 0.4, progress);
-    var camX = pointerSmoothed.x * 16;
-    var camY = pointerSmoothed.y * 10 - pA * (stage.clientHeight * 0.62);
-    camera.style.transform =
-      "translate3d(" + camX.toFixed(1) + "px, " + camY.toFixed(1) + "px, 0) scale(" +
-      (1 + pA * 0.1).toFixed(3) + ")";
-    camera.style.opacity = String(clamp(1 - pA * 1.15, 0, 1));
-    camera.style.filter = "blur(" + (1.5 + pA * 5).toFixed(1) + "px)";
-
-    /* Hintergrund: Ladeanimation + dezente Pointer-Parallaxe + späte Kamerafahrt (Phase C) */
-    var pLate = smoothstep(0.55, 1, progress);
+    /* Hintergrund (inkl. scharfer Kamera): Ladeanimation + dezente Pointer-
+       Parallaxe + späte Kamerafahrt gegen Ende der Sequenz. Die Kamera ist
+       Teil desselben Bildes und wird nicht separat animiert oder weichgezeichnet. */
+    var pLate = smoothstep(0.6, 1, progress);
     var bgX = pointerSmoothed.x * -6;
-    var bgY = pointerSmoothed.y * -3 - pLate * 22;
-    var bgScale = loadScale * (1 + pLate * 0.04);
+    var bgY = pointerSmoothed.y * -3 - pLate * 18;
+    var bgScale = loadScale * (1 + pLate * 0.035);
     bg.style.transform =
       "translate3d(" + bgX.toFixed(1) + "px, " + bgY.toFixed(1) + "px, 0) scale(" + bgScale.toFixed(3) + ")";
 
-    /* Phase B — Objektiv-Iris-Reveal (0.35 → 0.85) */
-    var pB = smoothstep(0.35, 0.85, progress);
-    var pBEase = easeInOutCubic(pB);
+    /* Display-Zoom (0.12 → 0.88): eine rechteckige Öffnung — das Kamera-
+       Display — wächst von ihrer kleinen Ausgangsposition auf dem
+       Kamerakörper aus auf Vollbild. */
+    var pZ = smoothstep(0.12, 0.88, progress);
+    var pZEase = easeInOutCubic(pZ);
     var stageRect = stage.getBoundingClientRect();
-    var diagonal = Math.hypot(stageRect.width, stageRect.height);
-    var radiusStart = Math.max(46, stageRect.width * 0.03);
-    var radius = lerp(radiusStart, diagonal, pBEase);
+    var W = stageRect.width, H = stageRect.height;
 
-    var originX = 86, originY = 66; // % — ungefähre Position des Objektivs im Referenzbild
-    var targetX = 68, targetY = 30; // % — Fokus auf Gesicht/Augen der Frau
-    var centerX = lerp(originX, targetX, pBEase);
-    var centerY = lerp(originY, targetY, pBEase);
+    var displayX = 84, displayY = 74; // % — ungefähre Position des Kamera-Displays im Referenzbild
+    var halfW = W * 0.05, halfH = H * 0.036;
+    var cx = (W * displayX) / 100, cy = (H * displayY) / 100;
 
-    lens.style.opacity = String(clamp(smoothstep(0.28, 0.4, progress), 0, 1));
+    var left0 = cx - halfW, right0 = W - (cx + halfW);
+    var top0 = cy - halfH, bottom0 = H - (cy + halfH);
 
-    /* Iris: volle Fläche, nur per clip-path als wachsender Kreis freigelegt —
+    var left = lerp(left0, 0, pZEase);
+    var right = lerp(right0, 0, pZEase);
+    var top = lerp(top0, 0, pZEase);
+    var bottom = lerp(bottom0, 0, pZEase);
+    var cornerR = lerp(9, 0, pZEase);
+
+    lens.style.opacity = String(clamp(smoothstep(0.05, 0.14, progress), 0, 1));
+
+    /* Iris: volle Fläche, nur per clip-path als wachsendes Rechteck freigelegt —
        dadurch bleibt der Bildausschnitt exakt pixelgleich zum Hintergrund. */
-    iris.style.clipPath = "circle(" + radius.toFixed(1) + "px at " + centerX.toFixed(2) + "% " + centerY.toFixed(2) + "%)";
+    iris.style.clipPath =
+      "inset(" + top.toFixed(1) + "px " + right.toFixed(1) + "px " + bottom.toFixed(1) + "px " + left.toFixed(1) + "px round " + cornerR.toFixed(1) + "px)";
 
-    /* Dekorativer Ring exakt auf dem Kreisrand */
-    ring.style.width = radius * 2 + "px";
-    ring.style.height = radius * 2 + "px";
-    ring.style.left = centerX + "%";
-    ring.style.top = centerY + "%";
-    ring.style.transform = "translate3d(-50%,-50%,0)";
-    ring.style.opacity = String(clamp(1 - smoothstep(0.7, 0.95, pB), 0, 1));
+    /* Die dezente "Display"-Aufhellung klingt zum Vollbild hin auf neutral ab,
+       damit am Ende wieder exakt das unveränderte Ausgangsbild zu sehen ist. */
+    var filterT = pZEase;
+    iris.style.filter =
+      "brightness(" + lerp(1.1, 1, filterT).toFixed(3) + ") contrast(" + lerp(1.04, 1, filterT).toFixed(3) + ") saturate(" + lerp(1.04, 1, filterT).toFixed(3) + ")";
 
-    /* HUD folgt der Iris als kompakter Viewfinder-Rahmen (Eigengröße gedeckelt,
-       damit Fadenkreuz/Ecken nicht mit der später riesigen Iris mitwachsen) */
-    var hudSize = Math.min(radius * 2 * 1.14, 420);
-    hud.style.width = hudSize + "px";
-    hud.style.height = hudSize + "px";
-    hud.style.left = centerX + "%";
-    hud.style.top = centerY + "%";
-    hud.style.transform = "translate3d(-50%,-50%,0)";
+    var rectW = W - left - right, rectH = H - top - bottom;
 
-    var backdropOpacity = Math.min(smoothstep(0, 0.18, pB), 1 - smoothstep(0.82, 1, pB));
-    backdrop.style.opacity = String(clamp(backdropOpacity * 0.82, 0, 0.82));
+    /* Dekorativer Rahmen exakt auf der wachsenden Display-Kante */
+    ring.style.left = left + "px";
+    ring.style.top = top + "px";
+    ring.style.width = rectW + "px";
+    ring.style.height = rectH + "px";
+    ring.style.borderRadius = cornerR + "px";
+    ring.style.opacity = String(clamp(1 - smoothstep(0.7, 0.95, pZ), 0, 1));
 
-    var hudOpacity = Math.min(smoothstep(0.08, 0.28, pB), 1 - smoothstep(0.6, 0.85, pB));
+    /* HUD folgt derselben Fläche, minimal größer */
+    var hudPad = Math.max(6, rectW * 0.06);
+    hud.style.left = left - hudPad + "px";
+    hud.style.top = top - hudPad + "px";
+    hud.style.width = rectW + hudPad * 2 + "px";
+    hud.style.height = rectH + hudPad * 2 + "px";
+
+    var backdropOpacity = Math.min(smoothstep(0, 0.15, pZ), 1 - smoothstep(0.82, 1, pZ));
+    backdrop.style.opacity = String(clamp(backdropOpacity * 0.78, 0, 0.78));
+
+    var hudOpacity = Math.min(smoothstep(0.04, 0.2, pZ), 1 - smoothstep(0.55, 0.82, pZ));
     hud.style.opacity = String(clamp(hudOpacity, 0, 0.9));
 
-    /* Text: während des Linsen-Moments dezent ausblenden, danach zurück */
-    var hideText = pB > 0.18 && pB < 0.92;
+    /* Text: während des Zoom-Moments dezent ausblenden, danach zurück */
+    var hideText = pZ > 0.16 && pZ < 0.94;
     content.classList.toggle("is-hidden", hideText);
     content.style.transform = "translateY(" + (hideText ? 10 : loadContentY) + "px)";
 

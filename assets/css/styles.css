@@ -363,8 +363,7 @@ section {
   overflow: hidden;
 }
 
-.hero-media__bg,
-.hero-media__camera {
+.hero-media__bg {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -373,9 +372,6 @@ section {
   background-size: cover;
   background-position: 78% center;
   will-change: transform;
-}
-
-.hero-media__bg {
   transform: scale(1.03);
   opacity: 0;
   transition: opacity 900ms var(--ease-out);
@@ -384,11 +380,6 @@ section {
 
 .hero-media__bg.is-loaded {
   opacity: 1;
-}
-
-.hero-media__camera {
-  clip-path: polygon(74% 46%, 100% 40%, 100% 100%, 68% 100%, 66% 62%);
-  filter: blur(1.5px);
 }
 
 .hero-media__scrim {
@@ -410,16 +401,6 @@ section {
   pointer-events: none;
 }
 
-/* Dauerhafte, dezente Abdunkelung genau über der Kamera-Ecke: nachdem die
-   Vordergrund-Kamera weggehoben wurde, bleibt hier keine deutlich erkennbare
-   statische Kamera-Silhouette stehen, sondern ruhiges dunkles Bokeh. */
-.hero-media__corner-shade {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 50% 62% at 88% 82%, rgba(4, 3, 2, 0.95) 0%, rgba(4, 3, 2, 0.8) 40%, rgba(4, 3, 2, 0) 72%);
-  pointer-events: none;
-}
-
 /* Lens iris reveal */
 .hero-lens {
   position: absolute;
@@ -434,19 +415,15 @@ section {
 .hero-lens__iris {
   position: absolute;
   inset: 0;
-  background-image:
-    radial-gradient(ellipse 50% 62% at 88% 82%, rgba(4, 3, 2, 0.95) 0%, rgba(4, 3, 2, 0.8) 40%, rgba(4, 3, 2, 0) 72%),
-    url("../img/hero-foto-art.png");
-  background-size: auto, cover;
-  background-position: 0 0, 78% center;
-  filter: brightness(1.1) contrast(1.05) saturate(1.05);
-  clip-path: circle(0px at 86% 66%);
+  background-image: url("../img/hero-foto-art.png");
+  background-size: cover;
+  background-position: 78% center;
+  clip-path: inset(50% 50% 50% 50% round 9px);
 }
 
-/* Rein dekorativer Ring am Rand der Iris-Öffnung */
+/* Rein dekorativer Rahmen an der Kante der Display-Öffnung */
 .hero-lens__ring {
   position: absolute;
-  border-radius: 50%;
   border: 1px solid rgba(217, 161, 91, 0.6);
   box-shadow: 0 0 40px 8px rgba(0, 0, 0, 0.5);
 }
@@ -574,9 +551,7 @@ section {
   height: auto;
   min-height: 88vh;
 }
-.no-js .hero-media__camera,
 .no-js .hero-lens,
-.reduced-motion .hero-media__camera,
 .reduced-motion .hero-lens {
   display: none;
 }
