@@ -1,21 +1,17 @@
 /* =============================================================================
-   FOTO ART Konstanz — interaktive Hero-Section
+   FOTO ART Konstanz — interaktive Hero-Section: "Die Kamera fotografiert sie"
    ---------------------------------------------------------------------------
-   Konzept (siehe Foto_Art_Konstanz.md Abschnitt 5, docs/hero-implementation.md):
    Der Hero-Bereich bleibt via `position: sticky` im Viewport fixiert, während
    der Nutzer durch einen zusätzlichen Scroll-Bereich scrollt — kein Wheel-/
    Scroll-Hijacking, das Sperren bis zum Abschluss der Sequenz ergibt sich
    allein daraus, dass der Wrapper höher ist als der Viewport. Funktioniert
    unverändert mit Tastatur, Trackpad und Touch.
 
-   Die Kamera im Vordergrund bleibt durchgehend scharf und unverändert sichtbar
-   (kein Wegheben, kein zusätzliches Weichzeichnen). Beim Scrollen zoomt eine
-   rechteckige Öffnung — das Kamera-Display — von ihrer kleinen Ausgangsgröße
-   auf dem Kamerakörper aus auf Vollbild auf. Da die Öffnung dasselbe Bild in
-   derselben Skalierung wie der Hintergrund zeigt, wirkt es, als würde man
-   durch das Display in die Szene hineingezoomt, bis wieder das vollständige
-   Ausgangsbild zu sehen ist — danach übernimmt der native Scroll in den
-   nächsten Abschnitt.
+   Ablauf beim Scrollen: eine Kamera hebt sich von unten ins Bild, ein
+   Sucher-Fokusrahmen zieht sich um die Person zusammen, der Verschluss löst
+   aus (Blitz-Overlay + Verschluss-Klick-Animation), ein Mini-Polaroid
+   bestätigt die Aufnahme, danach senkt sich die Kamera wieder und erst dann
+   gibt die sticky-Bühne den nativen Scroll in den nächsten Abschnitt frei.
    ============================================================================= */
 (function () {
   "use strict";
@@ -35,28 +31,26 @@
 
   var stage = wrapper.querySelector(".hero-stage");
   var bg = wrapper.querySelector("[data-hero-bg]");
-  var lens = wrapper.querySelector("[data-hero-lens]");
-  var backdrop = wrapper.querySelector("[data-hero-lens-backdrop]");
-  var iris = wrapper.querySelector("[data-hero-lens-iris]");
-  var ring = wrapper.querySelector("[data-hero-lens-ring]");
-  var hud = wrapper.querySelector("[data-hero-lens-hud]");
+  var focus = wrapper.querySelector("[data-hero-focus]");
+  var flash = wrapper.querySelector("[data-hero-flash]");
+  var camera = wrapper.querySelector("[data-hero-camera]");
+  var cameraGlass = wrapper.querySelector("[data-hero-camera-glass]");
+  var polaroid = wrapper.querySelector("[data-hero-polaroid]");
   var content = wrapper.querySelector("[data-hero-content]");
   var cue = wrapper.querySelector("[data-hero-cue]");
 
   /* ---------- Scroll room: großzügig auf Desktop, kompakter auf Mobile ---------- */
   function setScrollRoom() {
     var vh = window.innerHeight;
-    var room = window.innerWidth < 700 ? vh * 0.95 : vh * 1.55;
+    var room = window.innerWidth < 700 ? vh * 1.1 : vh * 1.7;
     wrapper.style.height = vh + room + "px";
   }
   setScrollRoom();
 
   /* ---------- Bild vorladen, dann sanfter Push-in (zeitbasiert, nicht scrollbasiert) ---------- */
   var loadT = 0; // 0..1
-  var loaded = false;
   var preload = new Image();
   preload.onload = function () {
-    loaded = true;
     bg.classList.add("is-loaded");
     var start = null;
     var DURATION = 1200;
@@ -113,6 +107,34 @@
     });
   }
 
+  /* ---------- Fokusrahmen: Start (weit) und Ziel (eng um die Person) in % der Bühne ---------- */
+  var focusStart = { left: 6, top: 8, width: 88, height: 82 };
+  var focusTarget = { left: 29, top: 13, width: 25, height: 70 };
+
+  /* ---------- Auslöse-Moment: einmalig pro Scroll-Durchlauf ---------- */
+  var captured = false;
+  var CAPTURE_AT = 0.42;
+  var CAPTURE_RESET_BELOW = 0.37;
+  var polaroidState = "hidden"; // hidden | visible | leaving
+
+  function triggerCapture() {
+    flash.classList.remove("is-active");
+    void flash.offsetWidth; // reflow, damit die Animation erneut startet
+    flash.classList.add("is-active");
+
+    camera.classList.remove("is-clicking");
+    void camera.offsetWidth;
+    camera.classList.add("is-clicking");
+
+    window.setTimeout(function () {
+      if (polaroidState !== "leaving") {
+        polaroid.classList.remove("is-leaving");
+        polaroid.classList.add("is-visible");
+        polaroidState = "visible";
+      }
+    }, 160);
+  }
+
   /* ---------- Frame loop ---------- */
   var frameQueued = false;
   var running = true;
@@ -136,75 +158,67 @@
     var loadScale = lerp(1.03, 1, easeOutCubic(loadT));
     var loadContentY = lerp(20, 0, easeOutCubic(loadT));
 
-    /* Hintergrund (inkl. scharfer Kamera): Ladeanimation + dezente Pointer-
-       Parallaxe + späte Kamerafahrt gegen Ende der Sequenz. Die Kamera ist
-       Teil desselben Bildes und wird nicht separat animiert oder weichgezeichnet. */
-    var pLate = smoothstep(0.6, 1, progress);
+    /* Hintergrund: Ladeanimation + dezente Pointer-Parallaxe + späte Kamerafahrt */
+    var pLate = smoothstep(0.86, 1, progress);
     var bgX = pointerSmoothed.x * -6;
-    var bgY = pointerSmoothed.y * -3 - pLate * 18;
-    var bgScale = loadScale * (1 + pLate * 0.035);
+    var bgY = pointerSmoothed.y * -3 - pLate * 14;
+    var bgScale = loadScale * (1 + pLate * 0.03);
     bg.style.transform =
       "translate3d(" + bgX.toFixed(1) + "px, " + bgY.toFixed(1) + "px, 0) scale(" + bgScale.toFixed(3) + ")";
 
-    /* Display-Zoom (0.12 → 0.88): eine rechteckige Öffnung — das Kamera-
-       Display — wächst von ihrer kleinen Ausgangsposition auf dem
-       Kamerakörper aus auf Vollbild. */
-    var pZ = smoothstep(0.12, 0.88, progress);
-    var pZEase = easeInOutCubic(pZ);
-    var stageRect = stage.getBoundingClientRect();
-    var W = stageRect.width, H = stageRect.height;
+    /* ---------- Kamera: hebt sich, fotografiert, senkt sich wieder ---------- */
+    var pRise = smoothstep(0.05, 0.24, progress);
+    var pLower = smoothstep(0.6, 0.82, progress);
+    var cameraT = pRise * (1 - pLower);
+    var cameraY = lerp(42, 0, easeOutCubic(cameraT));
+    var camPX = pointerSmoothed.x * 16;
+    var camPY = pointerSmoothed.y * -8;
+    camera.style.opacity = String(clamp(cameraT * 1.3, 0, 1));
+    camera.style.transform =
+      "translate(-50%, " + cameraY.toFixed(1) + "%) translate(" + camPX.toFixed(1) + "px, " + camPY.toFixed(1) + "px)";
 
-    var displayX = 84, displayY = 74; // % — ungefähre Position des Kamera-Displays im Referenzbild
-    var halfW = W * 0.05, halfH = H * 0.036;
-    var cx = (W * displayX) / 100, cy = (H * displayY) / 100;
+    /* Objektivglas: kleine Reflexionsverschiebung, reagiert auf Pointer */
+    if (cameraGlass) {
+      var glassX = pointerSmoothed.x * 2.4;
+      var glassY = pointerSmoothed.y * 2.4;
+      cameraGlass.style.transform = "translate(" + glassX.toFixed(2) + "px, " + glassY.toFixed(2) + "px)";
+    }
 
-    var left0 = cx - halfW, right0 = W - (cx + halfW);
-    var top0 = cy - halfH, bottom0 = H - (cy + halfH);
+    /* ---------- Fokusrahmen: zieht sich um die Person zusammen ---------- */
+    var pFocus = smoothstep(0.16, 0.36, progress);
+    var pFocusOut = smoothstep(0.46, 0.62, progress);
+    var focusOpacity = clamp(smoothstep(0.1, 0.18, progress) * (1 - pFocusOut), 0, 1);
+    var fEase = easeInOutCubic(pFocus);
+    var fLeft = lerp(focusStart.left, focusTarget.left, fEase);
+    var fTop = lerp(focusStart.top, focusTarget.top, fEase);
+    var fWidth = lerp(focusStart.width, focusTarget.width, fEase);
+    var fHeight = lerp(focusStart.height, focusTarget.height, fEase);
+    focus.style.left = fLeft + "%";
+    focus.style.top = fTop + "%";
+    focus.style.width = fWidth + "%";
+    focus.style.height = fHeight + "%";
+    focus.style.opacity = String(focusOpacity);
 
-    var left = lerp(left0, 0, pZEase);
-    var right = lerp(right0, 0, pZEase);
-    var top = lerp(top0, 0, pZEase);
-    var bottom = lerp(bottom0, 0, pZEase);
-    var cornerR = lerp(9, 0, pZEase);
+    /* ---------- Auslöser: einmalig auslösen, wenn der Fokus eingerastet ist ---------- */
+    if (!captured && progress >= CAPTURE_AT) {
+      captured = true;
+      triggerCapture();
+    } else if (captured && progress < CAPTURE_RESET_BELOW) {
+      captured = false;
+      polaroid.classList.remove("is-visible");
+      polaroid.classList.add("is-leaving");
+      polaroidState = "hidden";
+    }
 
-    lens.style.opacity = String(clamp(smoothstep(0.05, 0.14, progress), 0, 1));
+    /* Polaroid nach der Bestätigung wieder ausblenden, bevor die Kamera sinkt */
+    if (polaroidState === "visible" && progress > 0.58) {
+      polaroid.classList.remove("is-visible");
+      polaroid.classList.add("is-leaving");
+      polaroidState = "leaving";
+    }
 
-    /* Iris: volle Fläche, nur per clip-path als wachsendes Rechteck freigelegt —
-       dadurch bleibt der Bildausschnitt exakt pixelgleich zum Hintergrund. */
-    iris.style.clipPath =
-      "inset(" + top.toFixed(1) + "px " + right.toFixed(1) + "px " + bottom.toFixed(1) + "px " + left.toFixed(1) + "px round " + cornerR.toFixed(1) + "px)";
-
-    /* Die dezente "Display"-Aufhellung klingt zum Vollbild hin auf neutral ab,
-       damit am Ende wieder exakt das unveränderte Ausgangsbild zu sehen ist. */
-    var filterT = pZEase;
-    iris.style.filter =
-      "brightness(" + lerp(1.1, 1, filterT).toFixed(3) + ") contrast(" + lerp(1.04, 1, filterT).toFixed(3) + ") saturate(" + lerp(1.04, 1, filterT).toFixed(3) + ")";
-
-    var rectW = W - left - right, rectH = H - top - bottom;
-
-    /* Dekorativer Rahmen exakt auf der wachsenden Display-Kante */
-    ring.style.left = left + "px";
-    ring.style.top = top + "px";
-    ring.style.width = rectW + "px";
-    ring.style.height = rectH + "px";
-    ring.style.borderRadius = cornerR + "px";
-    ring.style.opacity = String(clamp(1 - smoothstep(0.7, 0.95, pZ), 0, 1));
-
-    /* HUD folgt derselben Fläche, minimal größer */
-    var hudPad = Math.max(6, rectW * 0.06);
-    hud.style.left = left - hudPad + "px";
-    hud.style.top = top - hudPad + "px";
-    hud.style.width = rectW + hudPad * 2 + "px";
-    hud.style.height = rectH + hudPad * 2 + "px";
-
-    var backdropOpacity = Math.min(smoothstep(0, 0.15, pZ), 1 - smoothstep(0.82, 1, pZ));
-    backdrop.style.opacity = String(clamp(backdropOpacity * 0.78, 0, 0.78));
-
-    var hudOpacity = Math.min(smoothstep(0.04, 0.2, pZ), 1 - smoothstep(0.55, 0.82, pZ));
-    hud.style.opacity = String(clamp(hudOpacity, 0, 0.9));
-
-    /* Text: während des Zoom-Moments dezent ausblenden, danach zurück */
-    var hideText = pZ > 0.16 && pZ < 0.94;
+    /* Text: während Fokus + Auslösung dezent ausblenden, danach zurück */
+    var hideText = progress > 0.14 && progress < 0.56;
     content.classList.toggle("is-hidden", hideText);
     content.style.transform = "translateY(" + (hideText ? 10 : loadContentY) + "px)";
 

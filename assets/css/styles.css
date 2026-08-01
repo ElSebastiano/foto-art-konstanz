@@ -3,9 +3,9 @@
    Editorial, bildstark, hell — an die reale Marke (fotoart.net: Weiß + Rot
    #e64946, Leitmotiv Peperoni) angelehnt, mit feurigem Rot/Orange als
    kreativer Signatur-Akzent. Siehe phase2_marke.md.
-   Der Hero-Bereich liegt weiterhin über einem dunklen Studiofoto und nutzt
-   dafür eigene, helle "--c-hero-*"-Textfarben, unabhängig vom sonst hellen
-   Seitenthema.
+   Die "--c-hero-*"-Textfarben sind für dunkel hinterlegte Flächen reserviert,
+   die real ein Foto zeigen (Path-Cards, Footer) — der Hero selbst ist ein
+   helles Grafik-Design und nutzt die normalen hellen Textfarben.
    ========================================================================== */
 
 :root {
@@ -237,11 +237,9 @@ section {
 /* ==========================================================================
    Header / Navigation
    Logo strikt links, Nav-Punkte einzeilig mit gleichmäßigem Abstand.
-   Standard: solide weiße Leiste mit dunklem Text (für alle Seiten ohne
-   dunkles Foto direkt am Seitenanfang). Nur die Startseite trägt zusätzlich
-   die Modifier-Klasse `.site-header--on-photo`: dort beginnt der Header
-   hell-transparent über dem dunklen Hero-Foto und wechselt beim Scrollen
-   (`.is-scrolled`) auf denselben weißen Stil wie alle anderen Seiten.
+   Solide weiße Leiste mit dunklem Text auf allen Seiten, inklusive Startseite
+   — der Hero ist ein helles Grafik-Design, kein dunkles Foto mehr, daher
+   braucht der Header keine transparente "on-photo"-Variante.
    ========================================================================== */
 
 .site-header {
@@ -259,13 +257,6 @@ section {
   transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
 }
 
-.site-header--on-photo:not(.is-scrolled) {
-  color: var(--c-hero-fg);
-  background: linear-gradient(to bottom, rgba(24, 15, 10, 0.55), rgba(24, 15, 10, 0));
-  backdrop-filter: none;
-  box-shadow: none;
-}
-
 .site-header .container {
   display: flex;
   align-items: center;
@@ -276,8 +267,8 @@ section {
 .logo {
   flex: 0 0 auto;
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.4em;
+  align-items: center;
+  gap: 0.5em;
   font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: 0.01em;
@@ -289,8 +280,15 @@ section {
 .logo span {
   color: var(--c-accent);
 }
-.site-header--on-photo:not(.is-scrolled) .logo span {
-  color: var(--c-accent-light);
+
+.logo-mark {
+  height: 34px;
+  width: auto;
+  display: block;
+}
+
+.logo-mark--footer {
+  height: 24px;
 }
 
 .main-nav {
@@ -327,11 +325,6 @@ section {
   opacity: 1;
   border-color: var(--c-accent);
 }
-.site-header--on-photo:not(.is-scrolled) .main-nav a:hover,
-.site-header--on-photo:not(.is-scrolled) .main-nav a[aria-current="page"] {
-  color: var(--c-accent-light);
-  border-color: var(--c-accent-light);
-}
 
 .header-cta {
   flex: 0 0 auto;
@@ -350,7 +343,6 @@ section {
   justify-content: center;
   cursor: pointer;
 }
-.site-header--on-photo:not(.is-scrolled) .nav-toggle { border-color: rgba(247, 241, 234, 0.4); }
 
 @media (max-width: 900px) {
   .main-nav {
@@ -406,7 +398,7 @@ section {
   height: 100vh;
   min-height: 560px;
   overflow: hidden;
-  background: var(--c-fg);
+  background: var(--c-bg-alt);
 }
 
 .hero-media {
@@ -422,107 +414,164 @@ section {
   height: 100%;
   background-image: url("../img/hero-foto-art.png");
   background-size: cover;
-  background-position: 78% center;
+  background-position: 38% 24%;
   will-change: transform;
   transform: scale(1.03);
   opacity: 0;
   transition: opacity 900ms var(--ease-out);
-  filter: brightness(0.98);
 }
 
 .hero-media__bg.is-loaded {
   opacity: 1;
 }
 
+/* Heller Scrim: das neue Referenzfoto ist überwiegend hell, daher blendet der
+   Text-Bereich links auf warmes Creme statt auf Dunkel ab — die Person und
+   die rote Studiowand rechts bleiben unverdeckt sichtbar. */
 .hero-media__scrim {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     100deg,
-    rgba(10, 9, 7, 0.94) 0%,
-    rgba(10, 9, 7, 0.72) 30%,
-    rgba(10, 9, 7, 0.18) 56%,
-    rgba(10, 9, 7, 0.05) 72%
+    rgba(251, 241, 234, 0.97) 0%,
+    rgba(251, 241, 234, 0.88) 26%,
+    rgba(251, 241, 234, 0.42) 48%,
+    rgba(251, 241, 234, 0.08) 64%,
+    rgba(251, 241, 234, 0) 76%
   );
 }
 
-.hero-media__vignette {
+.hero-skip {
   position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 78% 55%, transparent 55%, rgba(0,0,0,0.55) 100%);
+  z-index: 30;
+  top: calc(var(--header-h) + var(--space-2));
+  right: var(--space-3);
+  opacity: 0;
   pointer-events: none;
+  transition: opacity var(--dur-fast);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--c-fg);
+  border-color: var(--c-border-strong);
+}
+.hero-skip:focus {
+  opacity: 1;
+  pointer-events: auto;
 }
 
-/* Lens iris reveal */
-.hero-lens {
+/* ---------- Fokus-Sucher: zieht sich beim Scrollen um die Person zusammen ---------- */
+.hero-focus {
   position: absolute;
-  inset: 0;
+  z-index: 10;
   pointer-events: none;
   opacity: 0;
 }
-
-/* Volle Bühnenfläche, pixelgleich mit .hero-media__bg — nur per clip-path als
-   Kreis freigelegt, damit Bildausschnitt und -maßstab nahtlos zum Hintergrund
-   passen (kein Zoom/Qualitätsverlust, sondern ein "Loch" durch die Abdunkelung). */
-.hero-lens__iris {
-  position: absolute;
-  inset: 0;
-  background-image: url("../img/hero-foto-art.png");
-  background-size: cover;
-  background-position: 78% center;
-  clip-path: inset(50% 50% 50% 50% round 9px);
+.hero-focus svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.hero-focus .bracket {
+  fill: none;
+  stroke: var(--c-accent);
+  stroke-width: 0.8;
+  stroke-linecap: round;
 }
-
-/* Rein dekorativer Rahmen an der Kante der Display-Öffnung */
-.hero-lens__ring {
-  position: absolute;
-  border: 1px solid rgba(234, 178, 115, 0.65);
-  box-shadow: 0 0 40px 8px rgba(0, 0, 0, 0.5);
-}
-
-.hero-lens__hud {
-  position: absolute;
-  opacity: 0;
-}
-
-.hero-lens__hud svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.hero-lens__hud text {
+.hero-focus text {
   font-family: var(--font-sans);
   font-size: 3.6px;
   letter-spacing: 0.05em;
-  fill: var(--c-hero-gold);
-}
-.hero-lens__hud .bracket {
-  fill: none;
-  stroke: var(--c-hero-gold);
-  stroke-width: 0.6;
-  stroke-linecap: round;
-}
-.hero-lens__hud .crosshair {
-  fill: none;
-  stroke: rgba(247, 241, 234, 0.55);
-  stroke-width: 0.35;
+  fill: var(--c-accent-dark);
 }
 
-.hero-lens__backdrop {
+/* ---------- Blitz-Overlay ---------- */
+.hero-flash {
   position: absolute;
   inset: 0;
-  background: #070605;
+  background: #fff;
   opacity: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+.hero-flash.is-active {
+  animation: hero-flash-pulse 420ms ease-out;
+}
+@keyframes hero-flash-pulse {
+  0% { opacity: 0; }
+  12% { opacity: 0.92; }
+  100% { opacity: 0; }
 }
 
-/* Content — steht immer über dem dunklen Foto, bleibt daher bewusst hell,
-   unabhängig vom sonst hellen Seitenthema. */
+/* ---------- Kamera im Vordergrund ---------- */
+.hero-camera {
+  position: absolute;
+  left: 50%;
+  bottom: -4%;
+  width: min(30vw, 320px);
+  transform: translate(-50%, 40%);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 15;
+  filter: drop-shadow(0 18px 30px rgba(23, 19, 16, 0.35));
+}
+.hero-camera__svg { width: 100%; height: auto; display: block; overflow: visible; }
+.hero-camera__shutter {
+  transform-origin: 92px 97px;
+  transform-box: view-box;
+}
+.hero-camera.is-clicking .hero-camera__shutter {
+  animation: hero-shutter-click 380ms ease-out;
+}
+@keyframes hero-shutter-click {
+  0% { opacity: 0; transform: scale(0.25); }
+  35% { opacity: 1; transform: scale(1.05); }
+  60% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.25); }
+}
+
+/* ---------- Mini-Polaroid: Bestätigung, dass ein Foto entstanden ist ---------- */
+.hero-polaroid {
+  position: absolute;
+  left: calc(50% + min(9vw, 96px));
+  bottom: 6%;
+  width: min(15vw, 150px);
+  aspect-ratio: 4 / 5;
+  background: #fff;
+  padding: 0.5rem 0.5rem 1.4rem;
+  border-radius: 3px;
+  box-shadow: 0 16px 32px rgba(23, 19, 16, 0.28);
+  opacity: 0;
+  transform: translateY(10px) scale(0.85) rotate(-4deg);
+  z-index: 16;
+  pointer-events: none;
+}
+.hero-polaroid__photo {
+  width: 100%;
+  height: 100%;
+  background-image: url("../img/hero-foto-art.png");
+  background-size: 320% auto;
+  background-position: 30% 20%;
+}
+.hero-polaroid.is-visible {
+  animation: hero-polaroid-in 550ms var(--ease-out) forwards;
+}
+.hero-polaroid.is-leaving {
+  animation: hero-polaroid-out 400ms var(--ease-out) forwards;
+}
+@keyframes hero-polaroid-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.85) rotate(-4deg); }
+  to { opacity: 1; transform: translateY(0) scale(1) rotate(-3deg); }
+}
+@keyframes hero-polaroid-out {
+  from { opacity: 1; transform: translateY(0) scale(1) rotate(-3deg); }
+  to { opacity: 0; transform: translateY(-8px) scale(0.9) rotate(-3deg); }
+}
+
+/* Content — dunkler Text vor dem hellen Scrim, wie im übrigen Seitenthema. */
 .hero-content {
   position: relative;
   z-index: 5;
   height: 100%;
   display: flex;
   align-items: center;
-  color: var(--c-hero-fg);
 }
 
-.hero-content .eyebrow { color: var(--c-hero-gold); }
+.hero-content .eyebrow { color: var(--c-gold); }
 
 .hero-content__inner {
   max-width: 620px;
@@ -539,12 +588,19 @@ section {
 
 .hero-content h1 {
   margin-bottom: var(--space-3);
-  color: var(--c-hero-fg);
+  color: var(--c-fg);
+}
+
+.hero-highlight {
+  background: linear-gradient(100deg, var(--c-accent-dark), var(--c-accent) 55%, var(--c-accent-light));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .hero-content p.lead {
   font-size: 1.15rem;
-  color: var(--c-hero-fg-muted);
+  color: var(--c-fg-muted);
   max-width: 46ch;
 }
 
@@ -553,17 +609,6 @@ section {
   flex-wrap: wrap;
   gap: var(--space-3);
   margin-top: var(--space-4);
-}
-
-.hero-actions .btn-ghost,
-.hero-skip {
-  color: var(--c-hero-fg);
-  border-color: rgba(247, 241, 234, 0.4);
-}
-.hero-actions .btn-ghost:hover,
-.hero-skip:hover {
-  border-color: var(--c-hero-gold);
-  color: var(--c-hero-gold);
 }
 
 .hero-scroll-cue {
@@ -578,14 +623,14 @@ section {
   font-size: 0.75rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--c-hero-fg-faint);
+  color: var(--c-fg-faint);
   z-index: 5;
 }
 
 .hero-scroll-cue__line {
   width: 1px;
   height: 34px;
-  background: linear-gradient(to bottom, var(--c-hero-gold), transparent);
+  background: linear-gradient(to bottom, var(--c-accent), transparent);
   animation: hero-cue-pulse 1.8s ease-in-out infinite;
 }
 
@@ -594,34 +639,12 @@ section {
   50% { opacity: 1; transform: scaleY(1); }
 }
 
-.hero-skip {
-  position: absolute;
-  z-index: 30;
-  top: calc(var(--header-h) + var(--space-2));
-  right: var(--space-3);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--dur-fast);
-}
-.hero-skip:focus {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.hero-fallback-note {
-  display: none;
-}
-
-/* No-JS / reduced motion fallback: static hero */
+/* No-JS / reduced motion fallback: statischer Hero, keine Sperre, keine Kamera-Sequenz */
 .no-js .hero-stage,
 .reduced-motion .hero-stage {
   position: relative;
   height: auto;
   min-height: 88vh;
-}
-.no-js .hero-lens,
-.reduced-motion .hero-lens {
-  display: none;
 }
 .no-js .hero-media__bg,
 .reduced-motion .hero-media__bg {
@@ -630,10 +653,36 @@ section {
   position: relative;
   min-height: 88vh;
 }
+.no-js .hero-focus,
+.reduced-motion .hero-focus,
+.no-js .hero-camera,
+.reduced-motion .hero-camera,
+.no-js .hero-polaroid,
+.reduced-motion .hero-polaroid,
+.no-js .hero-flash,
+.reduced-motion .hero-flash {
+  display: none;
+}
 
-/* Bewusster Übergang vom dunklen Hero-Foto zum weißen Markenauftritt: die
+@media (max-width: 760px) {
+  .hero-media__bg { background-position: 32% 22%; }
+  .hero-media__scrim {
+    background: linear-gradient(
+      180deg,
+      rgba(251, 241, 234, 0.6) 0%,
+      rgba(251, 241, 234, 0.9) 55%,
+      rgba(251, 241, 234, 0.97) 100%
+    );
+  }
+  .hero-content { align-items: flex-end; padding-bottom: var(--space-6); }
+  .hero-camera { width: min(46vw, 240px); }
+  .hero-polaroid { left: auto; right: var(--space-3); width: min(26vw, 130px); }
+  .hero-scroll-cue { display: none; }
+}
+
+/* Bewusster Übergang vom hellen Hero-Foto zum weißen Markenauftritt: die
    erste weiße Sektion schiebt sich als abgerundete Karte leicht über die
-   untere Kante des Hero-Fotos, statt hart auf Dunkel zu schneiden. */
+   untere Kante des Hero-Bereichs. */
 .section-lift {
   position: relative;
   z-index: 6;

@@ -12,7 +12,12 @@
 <meta property="og:description" content="Fotostudio in Konstanz für Porträt, Familie, Hochzeit, Business, Industrie, Film & Drohne.">
 <meta property="og:image" content="assets/img/hero-foto-art.png">
 <meta property="og:locale" content="de_DE">
-<meta name="theme-color" content="#15130f">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/img/favicon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/favicon-180.png">
 <link rel="stylesheet" href="assets/css/styles.css">
 <script>
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -23,9 +28,9 @@
 <body>
 <a class="skip-link" href="#main">Zum Inhalt springen</a>
 
-<header class="site-header site-header--on-photo">
+<header class="site-header">
   <div class="container">
-    <a class="logo" href="index.html" aria-label="FOTO ART Konstanz – Startseite">FOTO ART <span>Konstanz</span></a>
+    <a class="logo" href="index.html" aria-label="FOTO ART Konstanz – Startseite"><img class="logo-mark" src="assets/img/logo-fotoart.png" alt="FOTO ART" width="153" height="100"> <span>Konstanz</span></a>
     <nav class="main-nav" id="main-nav" aria-label="Hauptnavigation">
       <ul>
         <li><a href="index.html" aria-current="page">Start</a></li>
@@ -50,33 +55,66 @@
   <div class="hero-wrapper" data-hero>
     <div class="hero-stage">
       <div class="hero-media">
-        <div class="hero-media__bg" data-hero-bg role="img" aria-label="Porträtfotografie im Studio: eine Frau im warmen Streiflicht vor dunklem Hintergrund, im Vordergrund eine professionelle Kamera auf einem Kamerakran."></div>
+        <div class="hero-media__bg" data-hero-bg role="img" aria-label="Fotostudio in Weiß und Rot: eine Frau im weißen Anzug mit rotem Bindeband posiert vor einer Studio-Cyclorama-Wand, im Hintergrund Galerie-Fotografien, eine rote Akzentwand und Blitzlicht-Equipment."></div>
         <div class="hero-media__scrim" aria-hidden="true"></div>
-        <div class="hero-media__vignette" aria-hidden="true"></div>
-
-        <div class="hero-lens" data-hero-lens aria-hidden="true" role="presentation">
-          <div class="hero-lens__backdrop" data-hero-lens-backdrop></div>
-          <div class="hero-lens__iris" data-hero-lens-iris></div>
-          <div class="hero-lens__ring" data-hero-lens-ring></div>
-          <div class="hero-lens__hud" data-hero-lens-hud>
-            <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-              <path class="bracket" d="M6,18 L6,6 L18,6"/>
-              <path class="bracket" d="M82,6 L94,6 L94,18"/>
-              <path class="bracket" d="M6,82 L6,94 L18,94"/>
-              <path class="bracket" d="M94,82 L94,94 L82,94"/>
-              <path class="crosshair" d="M50,38 L50,46 M50,54 L50,62 M38,50 L46,50 M54,50 L62,50"/>
-              <text x="10" y="90">AF · f/2.8 · 1/200s</text>
-            </svg>
-          </div>
-        </div>
       </div>
 
       <a class="btn btn-ghost hero-skip" href="#leistungen">Animation überspringen</a>
 
+      <!-- Sucher/Fokus-Rahmen, der sich beim Scrollen um die Person zusammenzieht -->
+      <div class="hero-focus" data-hero-focus aria-hidden="true" role="presentation">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path class="bracket" d="M3,20 L3,3 L20,3"/>
+          <path class="bracket" d="M80,3 L97,3 L97,20"/>
+          <path class="bracket" d="M3,80 L3,97 L20,97"/>
+          <path class="bracket" d="M97,80 L97,97 L80,97"/>
+          <text x="6" y="94">AF · f/2.8 · 1/200s</text>
+        </svg>
+      </div>
+
+      <!-- Blitz-Overlay für den Auslöse-Moment -->
+      <div class="hero-flash" data-hero-flash aria-hidden="true"></div>
+
+      <!-- Kamera im Vordergrund: hebt sich beim Scrollen, fotografiert, senkt sich wieder -->
+      <div class="hero-camera" data-hero-camera aria-hidden="true" role="presentation">
+        <svg class="hero-camera__svg" viewBox="0 0 240 170">
+          <defs>
+            <linearGradient id="cameraBody" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3a332c"/>
+              <stop offset="100%" stop-color="#171310"/>
+            </linearGradient>
+            <linearGradient id="cameraLensRim" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#0c0a08"/>
+              <stop offset="70%" stop-color="#2a241e"/>
+            </linearGradient>
+            <radialGradient id="cameraGlass" cx="38%" cy="34%" r="75%">
+              <stop offset="0%" stop-color="#4a5a66"/>
+              <stop offset="55%" stop-color="#161d21"/>
+              <stop offset="100%" stop-color="#020303"/>
+            </radialGradient>
+          </defs>
+          <rect x="18" y="52" width="150" height="88" rx="14" fill="url(#cameraBody)"/>
+          <rect x="150" y="60" width="30" height="72" rx="12" fill="url(#cameraBody)"/>
+          <rect x="88" y="26" width="46" height="30" rx="7" fill="url(#cameraBody)"/>
+          <rect x="100" y="14" width="14" height="14" rx="3" fill="#171310"/>
+          <circle class="hero-camera__ring" cx="92" cy="97" r="40" fill="none" stroke="#000" stroke-width="10" opacity="0.35"/>
+          <circle cx="92" cy="97" r="34" fill="url(#cameraLensRim)"/>
+          <circle cx="92" cy="97" r="24" fill="url(#cameraGlass)"/>
+          <circle class="hero-camera__glass" data-hero-camera-glass cx="86" cy="90" r="8" fill="#fff" opacity="0.22"/>
+          <circle class="hero-camera__shutter" data-hero-camera-shutter cx="92" cy="97" r="24" fill="#050403" opacity="0"/>
+          <circle cx="163" cy="66" r="5.5" fill="var(--c-accent)"/>
+        </svg>
+      </div>
+
+      <!-- Mini-Polaroid als Bestätigung, dass ein Foto entstanden ist -->
+      <div class="hero-polaroid" data-hero-polaroid aria-hidden="true">
+        <div class="hero-polaroid__photo"></div>
+      </div>
+
       <div class="hero-content">
         <div class="hero-content__inner" data-hero-content>
           <p class="eyebrow">Fotostudio Konstanz · Angelika Kessler &amp; Martin Buschmann</p>
-          <h1>Mehr als scharfe Bilder.</h1>
+          <h1>Mehr als <span class="hero-highlight">scharfe</span> Bilder.</h1>
           <p class="lead">Porträt, Familie und Hochzeit mit persönlicher Handschrift. Werbung, Industrie und Produktion mit professionellem Anspruch. Ein Studio, zwei Spezialgebiete.</p>
           <div class="hero-actions">
             <a class="btn btn-primary" href="anfrage.html?leistung=portraet">Shooting anfragen</a>
@@ -263,7 +301,7 @@
   <div class="container">
     <div class="footer-grid">
       <div>
-        <a class="logo" href="index.html">FOTO ART <span>Konstanz</span></a>
+        <a class="logo" href="index.html"><img class="logo-mark logo-mark--footer" src="assets/img/favicon-192.png" alt="" width="192" height="192"> FOTO ART <span>Konstanz</span></a>
         <p style="margin-top:1rem;max-width:32ch">Fotostudio in Konstanz für Porträt, Familie, Hochzeit sowie Werbung, Industrie, Film und Drohne.</p>
         <div class="social-row">
           <a href="https://www.facebook.com/fotoartbuschmann/" aria-label="Facebook" rel="noopener">
